@@ -16,12 +16,12 @@ test('full room lifecycle', async () => {
   const b = m.join(code.toLowerCase(), 'Bob', 's2') as any;
   assert.ok(b.ok);
 
-  assert.equal((m.start(code, b.data.playerId) as any).error, 'NOT_HOST');
+  assert.equal(((await m.start(code, b.data.playerId)) as any).error, 'NOT_HOST');
   assert.equal((m.updateSettings(code, b.data.playerId, { size: 6 }) as any).error, 'NOT_HOST');
   assert.ok(m.updateSettings(code, host, { size: 6, xMode: 'AUTO' }).ok);
   assert.equal((m.updateSettings(code, host, { size: 13 }) as any).error, 'BAD_SIZE');
 
-  assert.ok(m.start(code, host).ok);
+  assert.ok((await m.start(code, host)).ok);
   assert.equal((m.join(code, 'Cy', 's3') as any).error, 'STARTED');
   assert.equal((m.submit(code, host, []) as any).error, 'ROUND_OVER'); // still counting down
   await sleep(3200);
@@ -51,7 +51,7 @@ test('full room lifecycle', async () => {
   // room survives; settings change; next round has fresh puzzle, same players/code
   assert.ok(m.updateSettings(code, host, { size: 5 }).ok);
   const oldRegions = [...room.puzzle.regions];
-  assert.ok(m.start(code, host).ok);
+  assert.ok((await m.start(code, host)).ok);
   assert.equal(m.snapshot(code)!.round, 2);
   assert.equal(m.snapshot(code)!.players.length, 2);
   assert.equal(m.snapshot(code)!.size, 5);

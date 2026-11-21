@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
-import { generatePuzzle, type Puzzle } from '../shared/puzzle';
+import type { Puzzle } from '../shared/puzzle';
+import { generateAsync } from './generator';
 import { MAX_SIZE, MIN_SIZE, validateSolution } from '../shared/rules';
 import type { PublicPlayer, RoomState, Phase, Settings, XMode } from '../shared/types';
 
@@ -39,6 +40,7 @@ interface Room {
   startedAt: number;
   winner: { id: string; name: string; timeMs: number } | null;
   cleanupTimer?: NodeJS.Timeout;
+  starting?: boolean;
 }
 
 type Emit = (code: string, state: (now: number) => RoomState) => void;
@@ -47,19 +49,19 @@ type Result<T = {}> = { ok: true; data: T } | { ok: false; error: string };
 const fail = (error: string): { ok: false; error: string } => ({ ok: false, error });
 const id = (bytes = 6) => randomBytes(bytes).toString('hex');
 
-// ---- puzzle buffer: pre-generate the next puzzle per size so rounds start instantly ----
+// ---- puzzle buffer: pre-generate the next puzzle per size (off-thread) so rounds start instantly ----
 const buffer = new Map<number, Puzzle>();
 const pending = new Set<number>();
 function prefetch(size: number) {
   if (buffer.has(size) || pending.has(size)) return;
   pending.add(size);
-  setTimeout(() => {
-    buffer.set(size, generatePuzzle(size));
+  generateAsync(size).then((p) => {
+    buffer.set(size, p);
     pending.delete(size);
-  }, 50);
+  });
 }
-function takePuzzle(size: number): Puzzle {
-  const p = buffer.get(size) ?? generatePuzzle(size);
+async function takePuzzle(size: number): Promise<Puzzle> {
+  const p = buffer.get(size) ?? (await generateAsync(size));
   buffer.delete(size);
   prefetch(size);
   return p;
@@ -261,13 +263,17 @@ export class RoomManager {
   }
 
   // ---------- round flow ----------
-  start(code: string, playerId: string): Result {
+  async start(code: string, playerId: string): Promise<Result> {
     const f = this.find(code, playerId);
     if (!f) return fail('NOT_FOUND');
     const { room } = f;
     if (room.hostId !== playerId) return fail('NOT_HOST');
+    if ((room.phase !== 'lobby' && room.phase !== 'finished') || room.starting) return fail('ROUND_IN_PROGRESS');
+    room.starting = true;
+    const puzzle = await takePuzzle(room.settings.size);
+    room.starting = false;
     if (room.phase !== 'lobby' && room.phase !== 'finished') return fail('ROUND_IN_PROGRESS');
-    room.puzzle = takePuzzle(room.settings.size);
+    room.puzzle = puzzle;
     room.round++;
     room.phase = 'countdown';
     room.winner = null;

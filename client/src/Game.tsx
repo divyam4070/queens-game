@@ -128,11 +128,13 @@ function PlayBoard({ room, regions }: { room: RoomState; regions: number[] }) {
     [],
   );
 
+  // Tap cycle: empty -> X -> queen -> empty (auto X counts as an X, so the cycle looks the same in every mode)
   const click = (i: number) => {
     if (locked) return;
     const { queens, manual } = state;
     if (queenSet.has(i)) return commit(queens.filter((q) => q !== i), manual);
-    if (xMode === 'MANUAL' && !manual.includes(i)) return commit(queens, [...manual, i]);
+    const hasX = manual.includes(i) || autoSet.has(i);
+    if (xMode !== 'OFF' && !hasX) return commit(queens, [...manual, i]);
     commit([...queens, i], manual.filter((m) => m !== i));
   };
   const toggleX = (i: number) => {
@@ -275,7 +277,7 @@ function PlayBoard({ room, regions }: { room: RoomState; regions: number[] }) {
         <span className="count">{state.queens.length}/{n} queens</span>
       </div>
       <p className="hint center-text">
-        {xMode === 'OFF' ? 'Click a cell to place or remove a queen.' : xMode === 'MANUAL' ? 'Click to cycle X, queen, empty. Right-click or drag to mark X.' : 'Click to place a queen. X markers fill in for you. Right-click or drag to add your own.'}
+        {xMode === 'OFF' ? 'Tap a cell to place or remove a queen.' : 'Tap a cell: X, then queen, then clear. Drag across cells to mark many X at once.'}
       </p>
     </>
   );

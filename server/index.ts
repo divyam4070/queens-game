@@ -57,7 +57,7 @@ io.on('connection', (socket) => {
   const guarded = (event: string, fn: (code: string, playerId: string, p: any) => unknown) =>
     socket.on(event, (p: any, cb) => {
       if (!d.code || !d.playerId) return reply(cb, { ok: false, error: 'NOT_IN_ROOM' });
-      reply(cb, fn(d.code, d.playerId, p));
+      Promise.resolve(fn(d.code, d.playerId, p)).then((res) => reply(cb, res));
     });
 
   guarded('room:settings', (c, id, p) => rooms.updateSettings(c, id, { size: p?.size, xMode: p?.xMode, showProgress: p?.showProgress }));

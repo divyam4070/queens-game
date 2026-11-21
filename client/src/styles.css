@@ -111,12 +111,12 @@ input { background: var(--bg); border: 1.5px solid transparent; border-radius: 1
 
 .board { display: grid; width: min(100%, 78vh); aspect-ratio: 1; margin: 0 auto; border-radius: 10px; overflow: hidden; box-shadow: 0 0 0 3px var(--ink), 0 14px 40px rgba(26, 26, 51, .18); touch-action: none; user-select: none; -webkit-user-select: none; }
 .board.locked { opacity: .75; pointer-events: none; }
-.cell { position: relative; display: grid; place-items: center; padding: 0; margin: 0; border-style: solid; cursor: pointer; transition: filter .12s; min-width: 0; }
+.cell { position: relative; display: grid; place-items: center; padding: 0; margin: 0; border-style: solid; cursor: pointer; transition: filter .12s; min-width: 0; min-height: 0; overflow: hidden; }
 .cell:hover { filter: brightness(1.07); }
 .cell:focus-visible { outline: 3px solid var(--accent); outline-offset: -4px; z-index: 2; }
 [data-letters='on'] .cell::before { content: attr(data-letter); position: absolute; top: 2px; left: 4px; font: 700 .62rem var(--body); color: rgba(26, 26, 51, .65); }
-.queen { width: 68%; fill: var(--queen); animation: pop .28s cubic-bezier(.3, 1.8, .5, 1); pointer-events: none; }
-.xmark { width: 46%; stroke: rgba(26, 26, 51, .55); stroke-width: 2.4; stroke-linecap: round; fill: none; animation: fade .15s; pointer-events: none; }
+.queen { width: 68%; height: 68%; fill: var(--queen); animation: pop .28s cubic-bezier(.3, 1.8, .5, 1); pointer-events: none; }
+.xmark { width: 46%; height: 46%; stroke: rgba(26, 26, 51, .55); stroke-width: 2.4; stroke-linecap: round; fill: none; animation: fade .15s; pointer-events: none; }
 .cell.bad { background-image: repeating-linear-gradient(135deg, rgba(229, 56, 59, .35) 0 6px, transparent 6px 12px); animation: shake .3s; }
 .cell.bad .queen { fill: var(--danger); }
 .toolbar { display: flex; justify-content: center; align-items: center; gap: 10px; margin: 18px 0 6px; }

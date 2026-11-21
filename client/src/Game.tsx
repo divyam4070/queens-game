@@ -257,7 +257,7 @@ function PlayBoard({ room, regions }: { room: RoomState; regions: number[] }) {
     <>
       <div
         className={`board ${locked ? 'locked' : ''}`}
-        style={{ gridTemplateColumns: `repeat(${n}, 1fr)` }}
+        style={{ gridTemplateColumns: `repeat(${n}, minmax(0, 1fr))`, gridTemplateRows: `repeat(${n}, minmax(0, 1fr))` }}
         role="grid"
         aria-label={`${n} by ${n} Queens board`}
         onPointerDown={onDown}
